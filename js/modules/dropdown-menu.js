@@ -1,19 +1,45 @@
 import outsideClick from './outsideclick.js';
 
-export default function initDropdownMenu() {
-  const dropdownMenus = document.querySelectorAll('[data-dropdown]');
+export default class DropdownMenu {
+  constructor(dropdownMenus, events) {
+    this.dropdownMenus = document.querySelectorAll(dropdownMenus);
+    this.activeDropdownMenu = this.activeDropdownMenu.bind(this);
+    this.activeClass = 'active';
+    // Define o touchstart e click como argumentos padrão de events
+    // Caso o usuario da função não defina
+    if (events === undefined) {
+      this.events = ['touchstart', 'click'];
+    } else {
+      this.events = events;
+    }
+  }
+  // Ativa o dropdownMenu e adiciona
+  // função que observa o clique fora dele
 
-  function handleClick(event) {
+  activeDropdownMenu(event) {
     event.preventDefault();
-    this.classList.add('active');
-    outsideClick(this, ['touchstart', 'click'], () => {
-      this.classList.remove('active');
+    const element = event.currentTarget;
+    element.classList.add(this.activeClass);
+    // Passa o elemento que estamos clicando para a função outsideClick
+    outsideClick(element, this.events, () => {
+      element.classList.remove(this.activeClass);
     });
   }
 
-  dropdownMenus.forEach((menu) => {
-    ['touchstart', 'click'].forEach((userEvent) => {
-      menu.addEventListener(userEvent, handleClick);
+  // Adiciona os eventos ao dropdownMenu
+
+  addDropdownMenusEvents() {
+    this.dropdownMenus.forEach((menu) => {
+      this.events.forEach((userEvent) => {
+        menu.addEventListener(userEvent, this.activeDropdownMenu);
+      });
     });
-  });
+  }
+
+  init() {
+    if (this.dropdownMenus.length) {
+      this.addDropdownMenusEvents();
+    }
+    return this;
+  }
 }
